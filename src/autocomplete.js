@@ -8,7 +8,7 @@
 
  'use strict';
 
-angular.module('google.places', [])
+var module = angular.module('google.places', [])
   /**
    * DI wrapper around global google places library.
    *
