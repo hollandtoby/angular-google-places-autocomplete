@@ -51,11 +51,6 @@ Examples
 * [Force selection](example/force-selection.html)
 * [Custom Places](example/custom-places.html)
 
-Issues or feature requests
---------------------------
-
-Create a ticket [here](https://github.com/kuhnza/angular-google-places-autocomplete/issues)
-
 Contributing
 ------------
 
