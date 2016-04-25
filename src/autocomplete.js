@@ -1,6 +1,6 @@
 /*
  * angular-google-places-autocomplete
- * Adapted from https://github.com/kuhnza/angular-google-places-autocomplete/blob/master/LICENSE
+ * Adapted from https://github.com/kuhnza/angular-google-places-autocomplete
  * Copyright (c) 2016 Toby Holland
  * Licensed under the MIT license.
  * https://github.com/holland.toby/angular-google-places-autocomplete/blob/master/LICENSE
@@ -37,7 +37,8 @@ var a = angular.module('google.places', [])
                     options: '=?',
                     forceSelection: '=?',
                     customPlaces: '=?',
-                    onPredictionsChanged: '&'
+                    onPredictionsChanged: '&',
+                    onSelect: '&'
                 },
                 controller: ['$scope', function ($scope) {}],
                 link: function ($scope, element, attrs, controller) {
@@ -184,6 +185,7 @@ var a = angular.module('google.places', [])
                         }
 
                         clearPredictions();
+                        $scope.onSelect({ selected: prediction });
                     }
 
                     function parse(viewValue) {
