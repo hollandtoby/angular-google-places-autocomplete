@@ -1,30 +1,20 @@
 /*
  * angular-google-places-autocomplete
  * Adapted from https://github.com/kuhnza/angular-google-places-autocomplete
- * Copyright (c) 2016 Toby Holland
  * Licensed under the MIT license.
  * https://github.com/holland.toby/angular-google-places-autocomplete/blob/master/LICENSE
  */
 
  'use strict';
 
-var a = angular.module('google.places', [])
-	/**
-	 * DI wrapper around global google places library.
-	 *
-	 * Note: requires the Google Places API to already be loaded on the page.
-	 */
+var module = angular.module('google.places', [])
+	/* DI wrapper around global google places library. Note: requires the Google Places API to already be loaded on the page. */
 	.factory('googlePlacesApi', ['$window', function ($window) {
         if (!$window.google) throw 'Global `google` var missing. Did you forget to include the places API script?';
-
 		return $window.google;
 	}])
 
-	/**
-	 * Autocomplete directive. Use like this:
-	 *
-	 * <input type="text" g-places-autocomplete ng-model="myScopeVar" />
-	 */
+	/*** Autocomplete directive. Use like this: <input type="text" g-places-autocomplete ng-model="myScopeVar" /> */
 	.directive('gPlacesAutocomplete',
         [ '$parse', '$compile', '$timeout', '$document', 'googlePlacesApi',
         function ($parse, $compile, $timeout, $document, google) {
@@ -37,7 +27,8 @@ var a = angular.module('google.places', [])
                     options: '=?',
                     forceSelection: '=?',
                     customPlaces: '=?',
-                    onPredictionsChanged: '&'
+                    onPredictionsChanged: '&',
+                    onPredictionSelected: '&'
                 },
                 controller: ['$scope', function ($scope) {}],
                 link: function ($scope, element, attrs, controller) {
@@ -53,15 +44,14 @@ var a = angular.module('google.places', [])
                         placesService = new google.maps.places.PlacesService(element[0]);
 
                     (function init() {
-                        
-
                         $scope.query = '';
                         $scope.predictions = [];
                         $scope.input = element;
                         $scope.options = $scope.options || {};
                         $scope.isSelected = false;
-                        $scope.selectFirstOnEnter = true;
 
+                        //can config this to false - selects first suggestion on Enter
+                        $scope.selectFirstOnEnterOrTabOrEscape = true;
                         initAutocompleteDrawer();
                         initEvents();
                         initNgModelController();
@@ -71,12 +61,10 @@ var a = angular.module('google.places', [])
                         element.bind('keydown', onKeydown);
                         element.bind('blur', onBlur);
                         element.bind('submit', onBlur);
-
                         $scope.$watch('predictions',
                             function() {
                                 $scope.onPredictionsChanged({ p: $scope.predictions, selected: $scope.isSelected });
                             });
-
                         $scope.$watch('selected', select);
                     }
 
@@ -117,8 +105,8 @@ var a = angular.module('google.places', [])
                         } else if (event.which === keymap.up) {
                             $scope.active = ($scope.active ? $scope.active : $scope.predictions.length) - 1;
                             $scope.$digest();
-                        } else if (event.which === 13 || event.which === 9) {
-                            if ($scope.forceSelection || $scope.selectFirstOnEnter) {
+                        } else if (event.which === keymap.enter || event.which === keymap.tab) {
+                            if ($scope.forceSelection || $scope.selectFirstOnEnterOrTabOrEscape) {
                                 $scope.active = ($scope.active === -1) ? 0 : $scope.active;
                             }
 
@@ -129,7 +117,7 @@ var a = angular.module('google.places', [])
                                     clearPredictions();
                                 }
                             });
-                        } else if (event.which === 27) {
+                        } else if (event.which === keymap.escape) {
                             $scope.$apply(function() {
                                 event.stopPropagation();
                                 clearPredictions();
@@ -142,11 +130,9 @@ var a = angular.module('google.places', [])
                             return;
                         }
 
-                        if ($scope.forceSelection) {
+                        if ($scope.forceSelection || $scope.selectFirstOnEnterOrTabOrEscape) {
                             $scope.selected = ($scope.selected === -1) ? 0 : $scope.selected;
                         }
-
-                        $scope.$digest();
 
                         $scope.$apply(function () {
                             if ($scope.selected === -1) {
@@ -185,6 +171,7 @@ var a = angular.module('google.places', [])
 
                         clearPredictions();
                         $scope.isSelected = true;
+                        $scope.onPredictionSelected({ selected: prediction });
                     }
 
                     function parse(viewValue) {
@@ -274,7 +261,7 @@ var a = angular.module('google.places', [])
                     function getCustomPlaceMatches(query, place) {
                         var q = query + '',  // make a copy so we don't interfere with subsequent matches
                             terms = [],
-                            matched_substrings = [],
+                            matchedSubstrings = [],
                             fragment,
                             termFragments,
                             i;
@@ -286,12 +273,12 @@ var a = angular.module('google.places', [])
                             if (q.length > 0) {
                                 if (fragment.length >= q.length) {
                                     if (startsWith(fragment, q)) {
-                                        matched_substrings.push({ length: q.length, offset: i });
+                                        matchedSubstrings.push({ length: q.length, offset: i });
                                     }
                                     q = '';  // no more matching to do
                                 } else {
                                     if (startsWith(q, fragment)) {
-                                        matched_substrings.push({ length: fragment.length, offset: i });
+                                        matchedSubstrings.push({ length: fragment.length, offset: i });
                                         q = q.replace(fragment, '').trim();
                                     } else {
                                         q = '';  // no more matching to do
@@ -306,7 +293,7 @@ var a = angular.module('google.places', [])
                         }
 
                         return {
-                            matched_substrings: matched_substrings,
+                            matched_substrings: matchedSubstrings,
                             terms: terms
                         };
                     }
