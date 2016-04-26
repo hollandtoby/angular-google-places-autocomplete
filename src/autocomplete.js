@@ -117,7 +117,7 @@ var module = angular.module('google.places', [])
                                     clearPredictions();
                                 }
                             });
-                        } else if (event.which === keymap.escape) {
+                        } else if (event.which === keymap.esc) {
                             $scope.$apply(function() {
                                 event.stopPropagation();
                                 clearPredictions();
@@ -188,7 +188,6 @@ var module = angular.module('google.places', [])
                                 var customPlacePredictions;
 
                                 clearPredictions();
-                                $scope.predictionsVar = predictions;
 
                                 if ($scope.customPlaces) {
                                     customPlacePredictions = getCustomPlacePredictions($scope.query);
@@ -333,9 +332,9 @@ var module = angular.module('google.places', [])
 
     .directive('gPlacesAutocompleteDrawer', ['$window', '$document', function ($window, $document) {
         var TEMPLATE = [
-            '<div class="pac-container" ng-if="isOpen()" ng-style="{top: position.top+\'px\', left: position.left+\'px\', width: position.width+\'px\'}" style="display: block;" role="listbox" aria-hidden="{{!isOpen()}}">',
-            '  <div class="pac-item" g-places-autocomplete-prediction index="$index" prediction="prediction" query="query"',
-            '       ng-repeat="prediction in predictions track by $index" ng-class="{\'pac-item-selected\': isActive($index) }"',
+            '<div class="gac-container" ng-if="isOpen()" ng-style="{top: position.top+\'px\', left: position.left+\'px\', width: position.width+\'px\'}" style="display: block;" role="listbox" aria-hidden="{{!isOpen()}}">',
+            '  <div class="gac-item" g-places-autocomplete-prediction index="$index" prediction="prediction" query="query"',
+            '       ng-repeat="prediction in predictions track by $index" ng-class="{\'gac-item-selected\': isActive($index) }"',
             '       ng-mouseenter="selectActive($index)" ng-click="selectPrediction($index)" role="option" id="{{prediction.id}}">',
             '  </div>',
             '</div>'
@@ -403,8 +402,8 @@ var module = angular.module('google.places', [])
 
     .directive('gPlacesAutocompletePrediction', [function () {
         var TEMPLATE = [
-            '<span class="pac-icon pac-icon-marker"></span>',
-            '<span class="pac-item-query" ng-bind-html="prediction | highlightMatched"></span>',
+            '<span class="gac-icon gac-icon-marker"></span>',
+            '<span class="gac-item-query" ng-bind-html="prediction | highlightMatched"></span>',
             '<span ng-repeat="term in prediction.terms | unmatchedTermsOnly:prediction">{{term.value | trailingComma:!$last}}&nbsp;</span>',
             '<span class="custom-prediction-label" ng-if="prediction.is_custom">&nbsp;{{prediction.custom_prediction_label}}</span>'
         ];
@@ -432,7 +431,7 @@ var module = angular.module('google.places', [])
                 unmatchedPortion = prediction.terms[0].value.substr(matched.offset + matched.length);
             }
 
-            return $sce.trustAsHtml('<span class="pac-matched">' + matchedPortion + '</span>' + unmatchedPortion);
+            return $sce.trustAsHtml('<span class="gac-matched">' + matchedPortion + '</span>' + unmatchedPortion);
         }
     }])
 
