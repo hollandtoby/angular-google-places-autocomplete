@@ -37,8 +37,7 @@ var a = angular.module('google.places', [])
                     options: '=?',
                     forceSelection: '=?',
                     customPlaces: '=?',
-                    onPredictionsChanged: '&',
-                    onSelect: '&'
+                    onPredictionsChanged: '&'
                 },
                 controller: ['$scope', function ($scope) {}],
                 link: function ($scope, element, attrs, controller) {
@@ -60,6 +59,8 @@ var a = angular.module('google.places', [])
                         $scope.predictions = [];
                         $scope.input = element;
                         $scope.options = $scope.options || {};
+                        $scope.isSelected = false;
+                        $scope.selectFirstOnEnter = true;
 
                         initAutocompleteDrawer();
                         initEvents();
@@ -71,12 +72,12 @@ var a = angular.module('google.places', [])
                         element.bind('blur', onBlur);
                         element.bind('submit', onBlur);
 
-                        $scope.$watch('selected', select);
-
                         $scope.$watch('predictions',
                             function() {
-                                $scope.onPredictionsChanged({ p: $scope.predictions });
+                                $scope.onPredictionsChanged({ p: $scope.predictions, selected: $scope.isSelected });
                             });
+
+                        $scope.$watch('selected', select);
                     }
 
                     function initAutocompleteDrawer() {
@@ -117,7 +118,7 @@ var a = angular.module('google.places', [])
                             $scope.active = ($scope.active ? $scope.active : $scope.predictions.length) - 1;
                             $scope.$digest();
                         } else if (event.which === 13 || event.which === 9) {
-                            if ($scope.forceSelection) {
+                            if ($scope.forceSelection || $scope.selectFirstOnEnter) {
                                 $scope.active = ($scope.active === -1) ? 0 : $scope.active;
                             }
 
@@ -129,10 +130,10 @@ var a = angular.module('google.places', [])
                                 }
                             });
                         } else if (event.which === 27) {
-                            $scope.$apply(function () {
+                            $scope.$apply(function() {
                                 event.stopPropagation();
                                 clearPredictions();
-                            })
+                            });
                         }
                     }
 
@@ -178,18 +179,17 @@ var a = angular.module('google.places', [])
                                             controller.$viewChangeListeners.forEach(function (fn) {fn()});
                                         });
                                     });
-
-                                    $scope.$emit('addressSelected', 'addressSelected event fired');
                                 }
                             });
                         }
 
                         clearPredictions();
-                        $scope.onSelect({ selected: prediction });
+                        $scope.isSelected = true;
                     }
 
                     function parse(viewValue) {
                         var request;
+                        $scope.isSelected = false;
 
                         if (!(viewValue && isString(viewValue))) return viewValue;
 
@@ -216,11 +216,6 @@ var a = angular.module('google.places', [])
                                     $scope.predictions.length = 5;  // trim predictions down to size
                                 }
 
-                                if (!predictions || predictions.length == 0) {
-                                    $scope.$emit('addressSuggestionsNotFound', 'addressNotFound event fired');
-                                } else {
-                                    $scope.$emit('addressSuggestionsFound', 'addressNotFound event fired');
-                                }
                             });
                         });
 
