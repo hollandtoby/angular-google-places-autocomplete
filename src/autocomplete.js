@@ -7,7 +7,7 @@
 
  'use strict';
 
-var module = angular.module('google.places', [])
+export default angular.module('google.autocomplete', [])
 	/* DI wrapper around global google places library. Note: requires the Google Places API to already be loaded on the page. */
 	.factory('googlePlacesApi', ['$window', function ($window) {
         if (!$window.google) throw 'Global `google` var missing. Did you forget to include the places API script?';
@@ -51,7 +51,7 @@ var module = angular.module('google.places', [])
                         $scope.isSelected = false;
 
                         //can config this to false - selects first suggestion on Enter
-                        $scope.selectFirstOnEnterOrTabOrEscape = true;
+                        $scope.selectFirstOnEnterOrTab = true;
                         initAutocompleteDrawer();
                         initEvents();
                         initNgModelController();
@@ -106,7 +106,7 @@ var module = angular.module('google.places', [])
                             $scope.active = ($scope.active ? $scope.active : $scope.predictions.length) - 1;
                             $scope.$digest();
                         } else if (event.which === keymap.enter || event.which === keymap.tab) {
-                            if ($scope.forceSelection || $scope.selectFirstOnEnterOrTabOrEscape) {
+                            if ($scope.forceSelection || $scope.selectFirstOnEnterOrTab) {
                                 $scope.active = ($scope.active === -1) ? 0 : $scope.active;
                             }
 
@@ -130,12 +130,12 @@ var module = angular.module('google.places', [])
                             return;
                         }
 
-                        if ($scope.forceSelection || $scope.selectFirstOnEnterOrTabOrEscape) {
+                        if ($scope.forceSelection) {
                             $scope.selected = ($scope.selected === -1) ? 0 : $scope.selected;
                         }
 
-                        $scope.$apply(function () {
-                            if ($scope.selected === -1) {
+                        $scope.$apply(function () {      
+                            if ($scope.selected === -1 && $scope.model == '') { 
                                 clearPredictions();
                             }
                         });
@@ -431,7 +431,7 @@ var module = angular.module('google.places', [])
                 unmatchedPortion = prediction.terms[0].value.substr(matched.offset + matched.length);
             }
 
-            return $sce.trustAsHtml('<span class="gac-matched">' + matchedPortion + '</span>' + unmatchedPortion);
+            return $sce.trustAsHtml('<span class="pac-matched">' + matchedPortion + '</span>' + unmatchedPortion);
         }
     }])
 
